@@ -1,0 +1,40 @@
+Intel RealSense D435i Calibration Guide
+The calibration process for the Intel RealSense D435i depth camera involves capturing multiple views of a calibration pattern and using computer vision techniques to calculate camera parameters. I've provided two Python scripts that handle the complete calibration workflow.
+Requirements
+pip install numpy opencv-python pyrealsense2
+Calibration Process Overview
+
+Prepare a chessboard pattern - Print a 9x6' chessboard pattern on a rigid surface
+Run the calibration script - Capture multiple views of the chessboard
+Verify calibration - Check the results using the visualization tools
+
+How the Calibration Script Works
+The main calibration script (realsense_d435i_calibration.py) performs these steps:
+
+Camera Initialization: Sets up RGB and IR streams
+Data Collection: Captures multiple views of the chessboard
+Corner Detection: Finds chessboard corners in both RGB and IR images
+Individual Calibration: Calculates intrinsic parameters for both cameras
+Stereo Calibration: Determines the transformation between RGB and IR cameras
+Parameter Storage: Saves calibration data to a JSON file
+Verification: Displays undistorted images to verify results
+
+Usage Instructions
+
+Print a 9x6 chessboard pattern (inner corners count)
+Run the calibration script:
+python realsense_d435i_calibration.py
+
+When prompted, hold the chessboard in different positions and press SPACE when both RGB and IR cameras can clearly see the pattern
+After capturing 20 frames, the script will calculate calibration parameters
+Results will be saved to calibration_data/calibration_results.json
+Press Enter to run the verification step which shows before/after distortion correction
+
+Using Calibration Data
+The second script (usage_example.py) demonstrates how to:
+
+Load the calibration data
+Apply it to correct depth measurements
+Generate an aligned and calibrated point cloud
+
+This example visualizes a blend of color and depth data, with distortion correction applied.

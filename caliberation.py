@@ -43,15 +43,23 @@ class RealsenseCalibrator:
         # Configure streams
         self.config.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8, 30)
         self.config.enable_stream(rs.stream.infrared, 1, 640, 480, rs.format.y8, 30)
-        
-        # Start streaming
         self.profile = self.pipeline.start(self.config)
+
+
+        # Enable IR emitter 
+        device = self.profile.get_device()
+        depth_sensor = device.first_depth_sensor()
+        depth_sensor.set_option(rs.option.emitter_enabled, 1)  # Enable emitter
+
         
         # Get depth scale
-        depth_sensor = self.profile.get_device().first_depth_sensor()
-        self.depth_scale = depth_sensor.get_depth_scale()
-        print(f"Depth Scale: {self.depth_scale}")
-        
+        try:
+            depth_sensor = self.profile.get_device().first_depth_sensor()
+            self.depth_scale = depth_sensor.get_depth_scale()
+            print(f"Depth Scale: {self.depth_scale}")
+        except AttributeError as e:
+            raise RuntimeError("Failed to initialize camera. Check device connection.") from e
+            
         # Allow autoexposure to settle
         for _ in range(5):
             self.pipeline.wait_for_frames()
@@ -141,6 +149,9 @@ class RealsenseCalibrator:
             if is_ir:
                 # For IR images, normalize to improve contrast
                 img = cv2.normalize(img, None, 0, 255, cv2.NORM_MINMAX)
+                # Enhance IR preprocessing
+                img = cv2.GaussianBlur(img, (5, 5), 0)
+                _, img = cv2.threshold(img, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
             
             # Find chessboard corners
             ret, corners = cv2.findChessboardCorners(img, self.chessboard_size, None)
